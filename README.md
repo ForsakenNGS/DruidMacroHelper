@@ -5,7 +5,7 @@ making them more readable and massively reduce the character count.
 
 Credit to:
 - Fyroth and Zia for coming up / bringing to attention this improved method of powershifting
-- PsiloShift / Psilocybin-Mograine(H) for providing inspiration to further improve the addon
+- PsiloShift / Psilocybin-Mograine(H) for providing inspiration to further improve the addon (see https://github.com/HxxxxxS/PsiloShift )
 - The youtuber griftin for bringing those macro to my attention (see https://www.youtube.com/watch?v=wAjeA4ZokyY )
 
 The addon allows your macros to prevent shifting out of form if:
