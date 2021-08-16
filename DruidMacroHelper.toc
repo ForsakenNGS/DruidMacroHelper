@@ -1,6 +1,6 @@
 ## Interface: 20501
 ## Title: DruidMacroHelper
-## Version: 1.1.1
+## Version: 1.1.2
 ## Author: Mylaerla-Everlook
 ## Notes: Helper-Functions for creating efficient druid macros
 ## DefaultState: enabled

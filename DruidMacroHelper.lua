@@ -39,6 +39,17 @@ local function DruidMacroLocShiftable()
     -- Not removable by powershifting if also stunned
     return 0;
   end
+  -- Check for slows
+  local _, _, playerSpeed = GetUnitSpeed("player");
+  local playerSpeedNormal = 7;
+  if (IsStealthed()) then
+    playerSpeedNormal = 4.9;
+  end
+  if (playerSpeed < playerSpeedNormal) then
+    -- Player is slowed
+    return 1;
+  end
+  -- Check for roots
 	local i = C_LossOfControl.GetActiveLossOfControlDataCount();
 	while (i > 0) do
 		local locData = C_LossOfControl.GetActiveLossOfControlData(i);
