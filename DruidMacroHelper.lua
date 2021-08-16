@@ -16,11 +16,55 @@ local DRUID_MACRO_HELPER_ITEM_SHORTCUTS = {
   ["drums"] = 13180,
   ["holywater"] = 13180
 };
+local DRUID_MACRO_HELPER_LOC_IGNORED = { "SCHOOL_INTERRUPT", "DISARM", "PACIFYSILENCE", "SILENCE", "PACIFY" };
+local DRUID_MACRO_HELPER_LOC_SHIFTABLE = { "ROOT" };
+local DRUID_MACRO_HELPER_LOC_STUN = { "STUN", "STUN_MECHANIC", "FEAR", "CHARM", "CONFUSE", "POSSESS" };
 SLASH_DRUID_MACRO_HELPER1 = "/dmh";
 SLASH_DRUID_MACRO_HELPER2 = "/druidmacro";
 
+local function DruidMacroLocStun()
+	local i = C_LossOfControl.GetActiveLossOfControlDataCount();
+	while (i > 0) do
+		local locData = C_LossOfControl.GetActiveLossOfControlData(i);
+    if (tContains(DRUID_MACRO_HELPER_LOC_STUN, locData.locType)) then
+			return 1;
+		end
+		i = i - 1;
+	end
+	return 0;
+end
+
+local function DruidMacroLocShiftable()
+  if DruidMacroLocStun() > 0 then
+    -- Not removable by powershifting if also stunned
+    return 0;
+  end
+	local i = C_LossOfControl.GetActiveLossOfControlDataCount();
+	while (i > 0) do
+		local locData = C_LossOfControl.GetActiveLossOfControlData(i);
+    if (tContains(DRUID_MACRO_HELPER_LOC_SHIFTABLE, locData.locType)) then
+			return 1;
+		end
+		i = i - 1;
+	end
+	return 0;
+end
+
+local function DruidItemIds(itemNamesOrIds)
+  local itemIds = {};
+  for i in ipairs(itemNamesOrIds) do
+    local itemName = strlower(itemNamesOrIds[i]);
+    if DRUID_MACRO_HELPER_ITEM_SHORTCUTS[itemName] then
+      tinsert(itemIds, DRUID_MACRO_HELPER_ITEM_SHORTCUTS[itemName]);
+    else
+      tinsert(itemIds, itemNamesOrIds[i]);
+    end
+  end
+  return itemIds;
+end
+
 function DruidShifter(spellId, ...)
-  local preventShift = GetSpellCooldown(spellId)+C_LossOfControl.GetActiveLossOfControlDataCount();
+  local preventShift = GetSpellCooldown(spellId) + DruidMacroLocStun();
   local manaCost = 580;
   local manaCostTable = GetSpellPowerCost(spellId);
   if (manaCostTable) then
@@ -38,7 +82,7 @@ function DruidShifter(spellId, ...)
 end
 
 function DruidEnergy(spellId, maxEnergy)
-  local preventShift = GetSpellCooldown(spellId)+C_LossOfControl.GetActiveLossOfControlDataCount();
+  local preventShift = GetSpellCooldown(spellId) + DruidMacroLocStun();
   local manaCost = 580;
   local manaCostTable = GetSpellPowerCost(spellId);
   if (manaCostTable) then
@@ -51,20 +95,8 @@ function DruidEnergy(spellId, maxEnergy)
   if (not maxEnergy) then
     maxEnergy = 30;
   end
-  return (preventShift > 0) or (UnitPower("player",0)<manaCost) or (UnitPower("player",3)>maxEnergy);
-end
-
-local function DruidItemIds(itemNamesOrIds)
-  local itemIds = {};
-  for i in ipairs(itemNamesOrIds) do
-    local itemName = strlower(itemNamesOrIds[i]);
-    if DRUID_MACRO_HELPER_ITEM_SHORTCUTS[itemName] then
-      tinsert(itemIds, DRUID_MACRO_HELPER_ITEM_SHORTCUTS[itemName]);
-    else
-      tinsert(itemIds, itemNamesOrIds[i]);
-    end
-  end
-  return itemIds;
+  return (preventShift > 0) or (UnitPower("player",0)<manaCost) or
+    ((UnitPower("player",3)>maxEnergy) and DruidMacroLocShiftable() == 0);
 end
 
 local function DruidMacroSlash(action, ...)
@@ -85,7 +117,7 @@ local function DruidMacroSlash(action, ...)
     print("|cffffff00/click "..DRUID_MACRO_HELPER_NAME_SUPER_SAPPER.."|r Disable autoUnshift if not ready to use a super sapper");
   elseif (action == "stun") then
     -- Disable autoUnshift if stunned
-    if C_LossOfControl.GetActiveLossOfControlDataCount()>0 then
+    if DruidMacroLocStun()>0 then
       SetCVar("autoUnshift", 0);
     end
   elseif (action == "cd") then
