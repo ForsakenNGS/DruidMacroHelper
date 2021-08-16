@@ -99,3 +99,11 @@ The slash commands allow for more flexibility in some cases (like custom itemIds
 * `/dmh energy <maxEnergy>`
 
     Disable autoUnshift if above given energy value, player is stunned, on gcd or out of mana
+
+### Item shortcuts
+For checking cooldowns you can use item shortcuts instead of the id. Available are:
+- `pot` / `potion` Any Potion (ItemId 13446)
+- `hs` / `rune` / `seed` Healthstones, Runes, Seeds, etc. (ItemId 20520)
+- `sapper` Goblin Sapper Charge (ItemId 10646)
+- `supersapper` Super Sapper Charge (ItemId 23827)
+- `drums` / `holywater` Drums/Holywater (ItemId 13180)
