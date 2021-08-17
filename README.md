@@ -14,7 +14,8 @@ The addon allows your macros to prevent shifting out of form if:
 - You don't have enough mana to shift back
 And optionally
 - If specific items are on cooldown
-- If your enegery is above a certain threshold
+
+**Energy dependend shift are removed and I will not reimplement it. Macros like that cross a line that may cause blizzard to lock down this option and I will therefore not support spreading those.**
 
 ## Download
 
@@ -84,6 +85,9 @@ The click variants allow to use modifiers (like shown in the sapper example)
 
 ### Slash commands
 The slash commands allow for more flexibility in some cases (like custom itemIds or energy-based shifting)
+* `/dmh help [<command>]`
+
+    List a description of all available slash- and button-commands in the chat window
 * `/dmh start`
 
     Disable autoUnshift if player is stunned, on gcd or out of mana
@@ -93,12 +97,15 @@ The slash commands allow for more flexibility in some cases (like custom itemIds
 * `/dmh stun`
 
     Disable autoUnshift if stunned    
+* `/dmh gcd`
+
+    Disable autoUnshift if on global cooldown    
+* `/dmh mana`
+
+    Disable autoUnshift if you are missing mana to shift back into form
 * `/dmh cd <itemId|itemShortcut>[ <itemId|itemShortcut> ...]`
 
     Disable autoUnshift if items are on cooldown, player is stunned, on gcd or out of mana
-* `/dmh energy <maxEnergy>`
-
-    Disable autoUnshift if above given energy value, player is stunned, on gcd or out of mana
 
 ### Item shortcuts
 For checking cooldowns you can use item shortcuts instead of the id. Available are:

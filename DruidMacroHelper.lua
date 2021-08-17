@@ -1,43 +1,184 @@
-local DRUID_MACRO_HELPER_NAME_START = "dmhStart";
-local DRUID_MACRO_HELPER_NAME_RESET = "dmhReset";
-local DRUID_MACRO_HELPER_NAME_END = "dmhEnd";
-local DRUID_MACRO_HELPER_NAME_POT = "dmhPot";
-local DRUID_MACRO_HELPER_NAME_HS = "dmhHs";
-local DRUID_MACRO_HELPER_NAME_SAPPER = "dmhSap";
-local DRUID_MACRO_HELPER_NAME_SUPER_SAPPER = "dmhSuperSap";
-local DRUID_MACRO_HELPER_ITEM_SHORTCUTS = {
-  ["pot"] = 13446,
-  ["potion"] = 13446,
-  ["hs"] = 20520,
-  ["rune"] = 20520,
-  ["seed"] = 20520,
-  ["sapper"] = 10646,
-  ["supersapper"] = 23827,
-  ["drums"] = 13180,
-  ["holywater"] = 13180
-};
 local DRUID_MACRO_HELPER_LOC_IGNORED = { "SCHOOL_INTERRUPT", "DISARM", "PACIFYSILENCE", "SILENCE", "PACIFY" };
 local DRUID_MACRO_HELPER_LOC_SHIFTABLE = { "ROOT" };
 local DRUID_MACRO_HELPER_LOC_STUN = { "STUN", "STUN_MECHANIC", "FEAR", "CHARM", "CONFUSE", "POSSESS" };
-SLASH_DRUID_MACRO_HELPER1 = "/dmh";
-SLASH_DRUID_MACRO_HELPER2 = "/druidmacro";
 
-local function DruidMacroLocStun()
+DruidMacroHelper = {};
+
+function DruidMacroHelper:Init()
+  self:RegisterItemShortcut("pot", 13446);
+  self:RegisterItemShortcut("potion", 13446);
+  self:RegisterItemShortcut("hs", 20520);
+  self:RegisterItemShortcut("rune", 20520);
+  self:RegisterItemShortcut("seed", 20520);
+  self:RegisterItemShortcut("sapper", 10646);
+  self:RegisterItemShortcut("supersapper", 23827);
+  self:RegisterItemShortcut("drums", 13180);
+  self:RegisterItemShortcut("holywater", 13180);
+  self:RegisterSlashCommand("/dmh");
+  self:RegisterSlashCommand("/druidmacro");
+  self:RegisterSlashAction('help', 'OnSlashHelp', 'Show list of slash actions (or description for the given action)');
+  self:RegisterSlashAction('start', 'OnSlashStart', 'Disable autoUnshift if player is stunned, on gcd or out of mana');
+  self:RegisterSlashAction('end', 'OnSlashEnd', 'Enable autoUnshift again');
+  self:RegisterSlashAction('stun', 'OnSlashStun', 'Disable autoUnshift if stunned');
+  self:RegisterSlashAction('gcd', 'OnSlashGcd', 'Disable autoUnshift if on global cooldown');
+  self:RegisterSlashAction('mana', 'OnSlashMana', 'Disable autoUnshift if you are missing mana to shift back into form');
+  self:RegisterSlashAction('cd', 'OnSlashCooldown', '|cffffff00<itemId|itemShortcut>[ <itemId|itemShortcut> ...]|r Disable autoUnshift if items are on cooldown, player is stunned, on gcd or out of mana');
+  self:RegisterSlashAction('debug', 'OnSlashDebug', '|cffffff00on/off|r Enable or disable debugging output');
+  self:CreateButton('dmhStart', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;\n/dmh start', 'Change actionbar based on the current form. (includes /dmh start)');
+  self:CreateButton('dmhReset', '/changeactionbar 1', 'Change actionbar back to 1.');
+  self:CreateButton('dmhEnd', '/use [bar:2]!Dire Bear Form;[bar:3]!Cat Form;[bar:4]!Travel Form\n/click dmhReset\n/dmh end', 'Change back to form based on the current bar. (includes /dmh end)');
+  self:CreateButton('dmhPot', '/dmh cd pot\n/dmh start', 'Disable autoUnshift if not ready to use a potion');
+  self:CreateButton('dmhHs', '/dmh cd hs\n/dmh start', 'Disable autoUnshift if not ready to use a healthstone');
+  self:CreateButton('dmhSap', '/dmh cd sapper\n/dmh start', 'Disable autoUnshift if not ready to use a sapper');
+  self:CreateButton('dmhSuperSap', '/dmh cd supersapper\n/dmh start', 'Disable autoUnshift if not ready to use a super sapper');
+end
+
+function DruidMacroHelper:LogOutput(...)
+  print("|cffff0000DMH|r", ...);
+end
+
+function DruidMacroHelper:LogDebug(...)
+  if self.debug then
+    print("|cffff0000DMH|r", "|cffffff00Debug|r", ...);
+  end
+end
+
+function DruidMacroHelper:OnSlashCommand(parameters)
+  if not self.slashActions then
+    self:LogOutput("No slash actions registered!");
+    return;
+  end
+  self:LogDebug("Slash command called: ", unpack(parameters));
+  while (#(parameters) > 0) do
+    local action = tremove(parameters, 1);
+    if not self.slashActions[action] then
+      self:LogOutput("Slash action |cffffff00"..action.."|r not found!");
+    else
+      local actionData = self.slashActions[action];
+      if type(actionData.callback) == "function" then
+        actionData.callback(parameters);
+      else
+        self[actionData.callback](self, parameters);
+      end
+    end
+  end
+end
+
+function DruidMacroHelper:OnSlashHelp(parameters)
+  if (#(parameters) > 0) then
+    local action = tremove(parameters, 1);
+    if not self.slashActions[action] then
+      self:LogOutput("Slash action |cffffff00"..action.."|r not found!");
+    else
+      self:LogOutput("|cffffff00"..action.."|r", self.slashActions[action].description);
+    end
+  else
+    self:LogOutput("Available slash commands:");
+    for action in pairs(self.slashActions) do
+      self:LogOutput("|cffffff00/dmh "..action.."|r", self.slashActions[action].description);
+    end
+    self:LogOutput("Available buttons:");
+    for btnName in pairs(self.buttons) do
+      self:LogOutput("|cffffff00/click "..btnName.."|r", self.buttons[btnName]);
+    end
+  end
+end
+
+function DruidMacroHelper:OnSlashStart(parameters)
+  self:OnSlashStun(parameters);
+  self:OnSlashGcd(parameters);
+  self:OnSlashMana(parameters);
+  self:OnSlashCooldown(parameters);
+end
+
+function DruidMacroHelper:OnSlashStun(parameters)
+  if self:IsStunned() then
+    self:LogDebug("You are stunned");
+    SetCVar("autoUnshift", 0);
+  end
+end
+
+function DruidMacroHelper:OnSlashGcd(parameters)
+  if (GetSpellCooldown(768) > 0) then
+    self:LogDebug("You are on global cooldown");
+    SetCVar("autoUnshift", 0);
+  end
+end
+
+function DruidMacroHelper:OnSlashMana(parameters)
+  local manaCost = 580;
+  local manaCostTable = GetSpellPowerCost(spellId);
+  if (manaCostTable) then
+    for i in ipairs(manaCostTable) do
+      if (manaCostTable[i].type == 0) then
+        manaCost = manaCostTable[i].cost;
+      end
+    end
+  end
+  if (UnitPower("player",0) < manaCost) then
+    self:LogDebug("You missing mana to shift back into form");
+    SetCVar("autoUnshift", 0);
+  end
+end
+
+function DruidMacroHelper:OnSlashEnd(parameters)
+  -- Enable autoUnshift again
+  self:LogDebug("Enabling autoUnshift again...");
+  SetCVar("autoUnshift", 1);
+end
+
+function DruidMacroHelper:OnSlashCooldown(parameters)
+  local prevent = false;
+  while (#(parameters) > 0) do
+    local itemNameOrId = tremove(parameters, 1);
+    if self:IsItemOnCooldown(itemNameOrId) then
+      self:LogDebug("Item on cooldown: ", itemNameOrId);
+      prevent = true;
+    end
+  end
+  if prevent then
+    SetCVar("autoUnshift", 0);
+  end
+end
+
+function DruidMacroHelper:OnSlashDebug(parameters)
+  if (#(parameters) > 0) then
+    local status = tremove(parameters, 1);
+    if (status == "on") then
+      self.debug = true;
+    else
+      self.debug = false;
+    end
+  else
+    if not self.debug then
+      self.debug = true;
+    else
+      self.debug = false;
+    end
+  end
+  if self.debug then
+    self:LogOutput("Debug output enabled");
+  else
+    self:LogOutput("Debug output disabled");
+  end
+end
+
+function DruidMacroHelper:IsStunned()
 	local i = C_LossOfControl.GetActiveLossOfControlDataCount();
 	while (i > 0) do
 		local locData = C_LossOfControl.GetActiveLossOfControlData(i);
     if (tContains(DRUID_MACRO_HELPER_LOC_STUN, locData.locType)) then
-			return 1;
+			return true;
 		end
 		i = i - 1;
 	end
-	return 0;
+	return false;
 end
 
-local function DruidMacroLocShiftable()
-  if DruidMacroLocStun() > 0 then
+function DruidMacroHelper:IsShiftableCC()
+  if self:IsStunned() then
     -- Not removable by powershifting if also stunned
-    return 0;
+    return false;
   end
   -- Check for slows
   local _, _, playerSpeed = GetUnitSpeed("player");
@@ -47,149 +188,88 @@ local function DruidMacroLocShiftable()
   end
   if (playerSpeed < playerSpeedNormal) then
     -- Player is slowed
-    return 1;
+    return true;
   end
   -- Check for roots
 	local i = C_LossOfControl.GetActiveLossOfControlDataCount();
 	while (i > 0) do
 		local locData = C_LossOfControl.GetActiveLossOfControlData(i);
     if (tContains(DRUID_MACRO_HELPER_LOC_SHIFTABLE, locData.locType)) then
-			return 1;
+			return true;
 		end
 		i = i - 1;
 	end
-	return 0;
+	return false;
 end
 
-local function DruidItemIds(itemNamesOrIds)
-  local itemIds = {};
-  for i in ipairs(itemNamesOrIds) do
-    local itemName = strlower(itemNamesOrIds[i]);
-    if DRUID_MACRO_HELPER_ITEM_SHORTCUTS[itemName] then
-      tinsert(itemIds, DRUID_MACRO_HELPER_ITEM_SHORTCUTS[itemName]);
-    else
-      tinsert(itemIds, itemNamesOrIds[i]);
-    end
+function DruidMacroHelper:IsItemOnCooldown(itemNameOrId)
+  local itemId = itemNameOrId;
+  if self.itemShortcuts and self.itemShortcuts[itemNameOrId] then
+    itemId = self.itemShortcuts[itemNameOrId];
   end
-  return itemIds;
+  return (GetItemCooldown(itemId) > 0);
 end
 
-function DruidShifter(spellId, ...)
-  local preventShift = GetSpellCooldown(spellId) + DruidMacroLocStun();
-  local manaCost = 580;
-  local manaCostTable = GetSpellPowerCost(spellId);
-  if (manaCostTable) then
-    for i in ipairs(manaCostTable) do
-      if (manaCostTable[i].type == 0) then
-        manaCost = manaCostTable[i].cost;
+function DruidMacroHelper:CreateButton(name, macrotext, description)
+  local b = _G[name] or CreateFrame('Button', name, nil, 'SecureActionButtonTemplate,SecureHandlerBaseTemplate');
+  b:SetAttribute('type', 'macro');
+  b:SetAttribute('macrotext', macrotext);
+  if not self.buttons then
+    self.buttons = {};
+  end
+  if not description then
+    description = "No description available";
+  end
+  self.buttons[name] = description;
+end
+
+function DruidMacroHelper:RegisterCondition(shortcut, itemId)
+  if not self.itemShortcuts then
+    self.itemShortcuts = {};
+  end
+  self.itemShortcuts[shortcut] = itemId;
+end
+
+function DruidMacroHelper:RegisterItemShortcut(shortcut, itemId)
+  if not self.itemShortcuts then
+    self.itemShortcuts = {};
+  end
+  self.itemShortcuts[shortcut] = itemId;
+end
+
+function DruidMacroHelper:RegisterSlashAction(action, callback, description)
+  if (type(callback) ~= "function") and (type(callback) ~= "string") then
+    self:LogOutput("Invalid callback for slash action:", action);
+    return;
+  end
+  if not description then
+    description = "No description available";
+  end
+  if not self.slashActions then
+    self.slashActions = {};
+  end
+  self.slashActions[action] = {
+    ["callback"] = callback, ["description"] = description
+  };
+end
+
+function DruidMacroHelper:RegisterSlashCommand(cmd)
+  if not self.slashCommands then
+    self.slashCommands = {};
+    -- Add to SlashCmdList when the first command is added
+    SlashCmdList["DRUID_MACRO_HELPER"] = function(parameters)
+      if (parameters == "") then
+        parameters = "help";
       end
-    end
+      DruidMacroHelper:OnSlashCommand({ strsplit(" ", parameters) });
+    end;
   end
-  local itemIds = {...};
-  for i in ipairs(itemIds) do
-    preventShift = preventShift + GetItemCooldown(itemIds[i]);
-  end
-  return (preventShift > 0) or (UnitPower("player",0)<manaCost);
-end
-
-function DruidEnergy(spellId, maxEnergy)
-  local preventShift = GetSpellCooldown(spellId) + DruidMacroLocStun();
-  local manaCost = 580;
-  local manaCostTable = GetSpellPowerCost(spellId);
-  if (manaCostTable) then
-    for i in ipairs(manaCostTable) do
-      if (manaCostTable[i].type == 0) then
-        manaCost = manaCostTable[i].cost;
-      end
-    end
-  end
-  if (not maxEnergy) then
-    maxEnergy = 30;
-  end
-  return (preventShift > 0) or (UnitPower("player",0)<manaCost) or
-    ((GetShapeshiftForm() == 3) and (UnitPower("player",3)>maxEnergy) and DruidMacroLocShiftable() == 0);
-end
-
-local function DruidMacroSlash(action, ...)
-  local params = {...};
-  if (action == "") or (action == "help") then
-    print("|cffff0000DruidMacroHelper|r Available commands:");
-    print("|cffffff00/dmh start|r Disable autoUnshift if player is stunned, on gcd or out of mana");
-    print("|cffffff00/dmh end|r Enable autoUnshift again");
-    print("|cffffff00/dmh stun|r Disable autoUnshift if stunned");
-    print("|cffffff00/dmh cd <itemId|itemShortcut>[ <itemId|itemShortcut> ...]|r Disable autoUnshift if items are on cooldown, player is stunned, on gcd or out of mana");
-    print("|cffffff00/dmh energy <maxEnergy>|r Disable autoUnshift if above given energy value, player is stunned, on gcd or out of mana");
-    print("|cffffff00/click "..DRUID_MACRO_HELPER_NAME_START.."|r Change actionbar based on the current form. (includes /dmh start)");
-    print("|cffffff00/click "..DRUID_MACRO_HELPER_NAME_RESET.."|r Change actionbar back to 1.");
-    print("|cffffff00/click "..DRUID_MACRO_HELPER_NAME_END.."|r Change back to form based on the current bar. (includes /dmh end)");
-    print("|cffffff00/click "..DRUID_MACRO_HELPER_NAME_POT.."|r Disable autoUnshift if not ready to use a potion");
-    print("|cffffff00/click "..DRUID_MACRO_HELPER_NAME_HS.."|r Disable autoUnshift if not ready to use a healthstone");
-    print("|cffffff00/click "..DRUID_MACRO_HELPER_NAME_SAPPER.."|r Disable autoUnshift if not ready to use a sapper");
-    print("|cffffff00/click "..DRUID_MACRO_HELPER_NAME_SUPER_SAPPER.."|r Disable autoUnshift if not ready to use a super sapper");
-  elseif (action == "stun") then
-    -- Disable autoUnshift if stunned
-    if DruidMacroLocStun()>0 then
-      SetCVar("autoUnshift", 0);
-    end
-  elseif (action == "cd") then
-    -- Disable autoUnshift if items are on cooldown, player is stunned, on gcd or out of mana
-    local itemIds = DruidItemIds(params);
-    if DruidShifter(768, unpack(itemIds)) then
-      SetCVar("autoUnshift", 0);
-    end
-  elseif (action == "energy") then
-    -- Disable autoUnshift if above given energy value, player is stunned, on gcd or out of mana
-    local energyMax = tonumber(params[1]);
-    if DruidEnergy(768, energyMax) then
-      SetCVar("autoUnshift", 0);
-    end
-  elseif (action == "start") then
-    -- Disable autoUnshift if player is stunned, on gcd or out of mana
-    if DruidShifter(768) then
-      SetCVar("autoUnshift", 0);
-    end
-  elseif (action == "end") then
-    -- Enable autoUnshift again
-    SetCVar("autoUnshift", 1);
+  if not tContains(self.slashCommands, cmd) then
+    local index = #(self.slashCommands) + 1;
+    tinsert(self.slashCommands, cmd);
+    _G["SLASH_DRUID_MACRO_HELPER"..index] = cmd;
   end
 end
 
-SlashCmdList["DRUID_MACRO_HELPER"] = function(parameters)
-  DruidMacroSlash(strsplit(" ", parameters));
-end;
-
-do
-    local b = _G[DRUID_MACRO_HELPER_NAME_START] or CreateFrame('Button', DRUID_MACRO_HELPER_NAME_START, nil, 'SecureActionButtonTemplate,SecureHandlerBaseTemplate');
-    b:SetAttribute('type', 'macro');
-    b:SetAttribute('macrotext', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;\n/dmh start');
-end
-do
-    local b = _G[DRUID_MACRO_HELPER_NAME_RESET] or CreateFrame('Button', DRUID_MACRO_HELPER_NAME_RESET, nil, 'SecureActionButtonTemplate,SecureHandlerBaseTemplate');
-    b:SetAttribute('type', 'macro');
-    b:SetAttribute('macrotext', '/changeactionbar 1');
-end
-do
-    local b = _G[DRUID_MACRO_HELPER_NAME_END] or CreateFrame('Button', DRUID_MACRO_HELPER_NAME_END, nil, 'SecureActionButtonTemplate,SecureHandlerBaseTemplate');
-    b:SetAttribute('type', 'macro');
-    b:SetAttribute('macrotext', '/use [bar:2]!Dire Bear Form;[bar:3]!Cat Form;[bar:4]!Travel Form\n/click '..DRUID_MACRO_HELPER_NAME_RESET..'\n/dmh end');
-end
-do
-    local b = _G[DRUID_MACRO_HELPER_NAME_POT] or CreateFrame('Button', DRUID_MACRO_HELPER_NAME_POT, nil, 'SecureActionButtonTemplate,SecureHandlerBaseTemplate');
-    b:SetAttribute('type', 'macro');
-    b:SetAttribute('macrotext', '/dmh cd pot\n/dmh start');
-end
-do
-    local b = _G[DRUID_MACRO_HELPER_NAME_HS] or CreateFrame('Button', DRUID_MACRO_HELPER_NAME_HS, nil, 'SecureActionButtonTemplate,SecureHandlerBaseTemplate');
-    b:SetAttribute('type', 'macro');
-    b:SetAttribute('macrotext', '/dmh cd hs\n/dmh start');
-end
-do
-    local b = _G[DRUID_MACRO_HELPER_NAME_SAPPER] or CreateFrame('Button', DRUID_MACRO_HELPER_NAME_SAPPER, nil, 'SecureActionButtonTemplate,SecureHandlerBaseTemplate');
-    b:SetAttribute('type', 'macro');
-    b:SetAttribute('macrotext', '/dmh cd sapper\n/dmh start');
-end
-do
-    local b = _G[DRUID_MACRO_HELPER_NAME_SUPER_SAPPER] or CreateFrame('Button', DRUID_MACRO_HELPER_NAME_SUPER_SAPPER, nil, 'SecureActionButtonTemplate,SecureHandlerBaseTemplate');
-    b:SetAttribute('type', 'macro');
-    b:SetAttribute('macrotext', '/dmh cd supersapper\n/dmh start');
-end
+-- Kickstart the addon
+DruidMacroHelper:Init();
