@@ -107,7 +107,7 @@ function DruidEnergy(spellId, maxEnergy)
     maxEnergy = 30;
   end
   return (preventShift > 0) or (UnitPower("player",0)<manaCost) or
-    ((UnitPower("player",3)>maxEnergy) and DruidMacroLocShiftable() == 0);
+    ((GetShapeshiftForm() == 3) and (UnitPower("player",3)>maxEnergy) and DruidMacroLocShiftable() == 0);
 end
 
 local function DruidMacroSlash(action, ...)
