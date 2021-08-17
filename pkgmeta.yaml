@@ -1,4 +1,2 @@
-package-as: DruidMacroHelper-@project-version@-ClassicTBC
-
 ignore:
   - README.md
