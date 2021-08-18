@@ -25,11 +25,11 @@ https://www.curseforge.com/wow/addons/druidmacrohelper
 ## Examples:
 
 ### Cat powershifting
-#### Will shift out of cat form and back in if you are below 30 energy
+#### Will shift out of cat form and back in
 ```lua
 #showtooltip
 /stopattack
-/dmh energy 30
+/dmh start
 /cast !Cat Form
 /dmh end
 /startattack
