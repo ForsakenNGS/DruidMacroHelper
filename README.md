@@ -28,35 +28,29 @@ https://www.curseforge.com/wow/addons/druidmacrohelper
 #### Will shift out of cat form and back in
 ```lua
 #showtooltip
-/stopattack
 /dmh start
 /cast !Cat Form
 /dmh end
-/startattack
 ```
 
 ### Healthstone
 #### Will shift out of form, use a Healthstone and shift back into the form you started in
 ```lua
 #showtooltip
-/stopattack
 /click dmhStart
 /dmh cd hs
 /use Master Healthstone
 /click dmhEnd
-/startattack
 ```
 
 ### Super Healing Potion
 #### Will shift out of form, use a Super Healing Potion and shift back into the form you started in
 ```lua
 #showtooltip
-/stopattack
 /click dmhStart
 /dmh cd pot
 /use Super Healing Potion
 /click dmhEnd
-/startattack
 ```
 
 ### Goblin Sapper
