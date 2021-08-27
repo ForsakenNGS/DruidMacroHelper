@@ -1,8 +1,18 @@
 ## Interface: 20501
 ## Title: DruidMacroHelper
-## Version: 1.1.2
+## Version: 1.1.6
 ## Author: Mylaerla-Everlook
 ## Notes: Helper-Functions for creating efficient druid macros
 ## DefaultState: enabled
+
+Locale\enUS.lua
+Locale\deDE.lua
+Locale\esES.lua
+Locale\frFR.lua
+Locale\itIT.lua
+Locale\ptBR.lua
+Locale\ruRU.lua
+Locale\koKR.lua
+Locale\zhCN.lua
 
 DruidMacroHelper.lua
