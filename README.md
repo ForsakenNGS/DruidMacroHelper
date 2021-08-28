@@ -53,6 +53,16 @@ https://www.curseforge.com/wow/addons/druidmacrohelper
 /click dmhEnd
 ```
 
+### Super Mana Potion
+#### Will shift out of form, use a Super Mana Potion and shift back into cat form (ignores mana condition, may require a second press/click)
+```lua
+#showtooltip
+/dmh stun gcd cd pot
+/use Super Mana Potion
+/cast !Cat Form
+/dmh end
+```
+
 ### Goblin Sapper
 #### Will shift out of form, use a Super Sapper Charge / Goblin Sapper Charge and shift back into the form you started in
 ```lua
@@ -70,6 +80,7 @@ There are two options on how to use the addon in macros:
 ### Click variants
 The click variants allow to use modifiers (like shown in the sapper example)
 * `/click dmhStart` Change actionbar based on the current form. (includes /dmh start)
+* `/click dmhBar` Change actionbar based on the current form. (without /dmh start)
 * `/click dmhReset` Change actionbar back to 1.
 * `/click dmhEnd` Change back to form based on the current bar. (includes /dmh end)
 * `/click dmhPot` Disable autoUnshift if not ready to use a potion
@@ -95,6 +106,9 @@ The slash commands allow for more flexibility in some cases (like custom itemIds
 
     Disable autoUnshift if on global cooldown    
 * `/dmh mana`
+
+    Disable autoUnshift if on global cooldown or missing mana to shift back into form
+* `/dmh gcd mana`
 
     Disable autoUnshift if you are missing mana to shift back into form
 * `/dmh cd <itemId|itemShortcut>[ <itemId|itemShortcut> ...]`
