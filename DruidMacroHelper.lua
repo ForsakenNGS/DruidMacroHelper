@@ -1,3 +1,4 @@
+local _, L = ...;
 local DRUID_MACRO_HELPER_LOC_IGNORED = { "SCHOOL_INTERRUPT", "DISARM", "PACIFYSILENCE", "SILENCE", "PACIFY" };
 local DRUID_MACRO_HELPER_LOC_SHIFTABLE = { "ROOT" };
 local DRUID_MACRO_HELPER_LOC_STUN = { "STUN", "STUN_MECHANIC", "FEAR", "CHARM", "CONFUSE", "POSSESS" };
@@ -25,8 +26,9 @@ function DruidMacroHelper:Init()
   self:RegisterSlashAction('cd', 'OnSlashCooldown', '|cffffff00<itemId|itemShortcut>[ <itemId|itemShortcut> ...]|r Disable autoUnshift if items are on cooldown, player is stunned, on gcd or out of mana');
   self:RegisterSlashAction('debug', 'OnSlashDebug', '|cffffff00on/off|r Enable or disable debugging output');
   self:CreateButton('dmhStart', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;\n/dmh start', 'Change actionbar based on the current form. (includes /dmh start)');
+  self:CreateButton('dmhBar', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;', 'Change actionbar based on the current form. (without /dmh start)');
   self:CreateButton('dmhReset', '/changeactionbar 1', 'Change actionbar back to 1.');
-  self:CreateButton('dmhEnd', '/use [bar:2]!Dire Bear Form;[bar:3]!Cat Form;[bar:4]!Travel Form\n/click dmhReset\n/dmh end', 'Change back to form based on the current bar. (includes /dmh end)');
+  self:CreateButton('dmhEnd', '/use [bar:2]!'..L["FORM_DIRE_BEAR"]..';[bar:3]!'..L["FORM_CAT"]..';[bar:4]!'..L["FORM_TRAVEL"]..'\n/click dmhReset\n/dmh end', 'Change back to form based on the current bar. (includes /dmh end)');
   self:CreateButton('dmhPot', '/dmh cd pot\n/dmh start', 'Disable autoUnshift if not ready to use a potion');
   self:CreateButton('dmhHs', '/dmh cd hs\n/dmh start', 'Disable autoUnshift if not ready to use a healthstone');
   self:CreateButton('dmhSap', '/dmh cd sapper\n/dmh start', 'Disable autoUnshift if not ready to use a sapper');
