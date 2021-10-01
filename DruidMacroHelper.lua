@@ -164,15 +164,25 @@ function DruidMacroHelper:OnSlashDebug(parameters)
 end
 
 function DruidMacroHelper:IsStunned()
-	local i = C_LossOfControl.GetActiveLossOfControlDataCount();
-	while (i > 0) do
-		local locData = C_LossOfControl.GetActiveLossOfControlData(i);
+  local i = C_LossOfControl.GetActiveLossOfControlDataCount();
+  while (i > 0) do
+    local locData = C_LossOfControl.GetActiveLossOfControlData(i);
     if (tContains(DRUID_MACRO_HELPER_LOC_STUN, locData.locType)) then
-			return true;
-		end
-		i = i - 1;
-	end
-	return false;
+      return true;
+    end
+    i = i - 1;
+  end
+
+  i = 40
+  while (i > 0) do
+    local name,_,_,_,_,_,_,_,_,spellId = UnitDebuff("player",i);
+    if spellId == 38509 then -- https://tbc.wowhead.com/spell=38509/shock-blast
+      return true;
+    end
+    i = i - 1;
+  end
+
+  return false;
 end
 
 function DruidMacroHelper:IsShiftableCC()
