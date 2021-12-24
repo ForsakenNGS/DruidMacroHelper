@@ -33,6 +33,7 @@ function DruidMacroHelper:Init()
   self:CreateButton('dmhHs', '/dmh cd hs\n/dmh start', 'Disable autoUnshift if not ready to use a healthstone');
   self:CreateButton('dmhSap', '/dmh cd sapper\n/dmh start', 'Disable autoUnshift if not ready to use a sapper');
   self:CreateButton('dmhSuperSap', '/dmh cd supersapper\n/dmh start', 'Disable autoUnshift if not ready to use a super sapper');
+  self.SpellQueueWindow = 400
 end
 
 function DruidMacroHelper:LogOutput(...)
@@ -91,6 +92,12 @@ function DruidMacroHelper:OnSlashStart(parameters)
   self:OnSlashGcd(parameters);
   self:OnSlashMana(parameters);
   self:OnSlashCooldown(parameters);
+
+  if GetCVar("autoUnshift") == 1 then
+    self:LogOutput("Setting SpellQueueWindow to 0")
+    self.SpellQueueWindow = GetCVar("SpellQueueWindow");
+    SetCVar("SpellQueueWindow", 0);
+  end
 end
 
 function DruidMacroHelper:OnSlashStun(parameters)
@@ -127,6 +134,8 @@ function DruidMacroHelper:OnSlashEnd(parameters)
   -- Enable autoUnshift again
   self:LogDebug("Enabling autoUnshift again...");
   SetCVar("autoUnshift", 1);
+  self:LogDebug("Resetting SpellQueueWindow to " .. self.SpellQueueWindow);
+  SetCVar("SpellQueueWindow", self.SpellQueueWindow);
 end
 
 function DruidMacroHelper:OnSlashCooldown(parameters)
