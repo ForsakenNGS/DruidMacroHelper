@@ -145,6 +145,9 @@ function DruidMacroHelper:OnSlashCooldown(parameters)
 end
 
 function DruidMacroHelper:OnSlashCharge(unit)
+  if unit == nil then
+    unit = "target"
+  end
   if ~UnitExists(unit) then
     self:LogOutput("Unit not found:", unit);
     return;
