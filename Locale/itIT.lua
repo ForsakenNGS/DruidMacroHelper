@@ -5,3 +5,4 @@ if GetLocale() ~= "itIT" then return end
 L["FORM_DIRE_BEAR"] = "Dire Bear Form"
 L["FORM_CAT"] = "Cat Form"
 L["FORM_TRAVEL"] = "Travel Form"
+L["SPELL_CHARGE"] = "Feral Charge"
