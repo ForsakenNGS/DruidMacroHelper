@@ -24,6 +24,7 @@ function DruidMacroHelper:Init()
   self:RegisterSlashAction('gcd', 'OnSlashGcd', 'Disable autoUnshift if on global cooldown');
   self:RegisterSlashAction('mana', 'OnSlashMana', 'Disable autoUnshift if you are missing mana to shift back into form');
   self:RegisterSlashAction('cd', 'OnSlashCooldown', '|cffffff00<itemId|itemShortcut>[ <itemId|itemShortcut> ...]|r Disable autoUnshift if items are on cooldown, player is stunned, on gcd or out of mana');
+  self:RegisterSlashAction('charge', 'OnSlashCharge', '|cffffff00<unit|target|mouseover|targettarget|arena1 ...>|r Disable autoUnshift if unit is in range of Feral Charge');
   self:RegisterSlashAction('debug', 'OnSlashDebug', '|cffffff00on/off|r Enable or disable debugging output');
   self:CreateButton('dmhStart', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;\n/dmh start', 'Change actionbar based on the current form. (includes /dmh start)');
   self:CreateButton('dmhBar', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;', 'Change actionbar based on the current form. (without /dmh start)');
@@ -146,6 +147,24 @@ function DruidMacroHelper:OnSlashCooldown(parameters)
       self:LogDebug("Item on cooldown: ", itemNameOrId);
       prevent = true;
     end
+  end
+  if prevent then
+    SetCVar("autoUnshift", 0);
+  end
+end
+
+function DruidMacroHelper:OnSlashCharge(unit)
+  if ~UnitExists(unit) then
+    self:LogOutput("Unit not found:", unit);
+    return;
+  end
+  local prevent = false;
+  if ~IsSpellInRange(L["SPELL_CHARGE"], unit) then
+    prevent = true
+  end
+  local start, duration = GetSpellCooldown(L["SPELL_CHARGE"]);
+  if duration > 0 then
+    prevent = true
   end
   if prevent then
     SetCVar("autoUnshift", 0);
