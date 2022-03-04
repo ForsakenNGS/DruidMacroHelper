@@ -76,13 +76,11 @@ https://www.curseforge.com/wow/addons/druidmacrohelper
 ### Feral Charge
 #### Go to Bear and Feral Charge from any form. Checks if we are in range and Feral Charge is off CD.
 ```lua
-#showtooltip
+#showtooltip Feral Charge
 /dmh charge
 /use [noform:1] Dire Bear Form
-/cast Feral Charge
+/use Feral Charge
 /dmh end
-```
-
 ```
 
 ## Available commands
