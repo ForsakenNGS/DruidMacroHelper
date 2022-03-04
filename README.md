@@ -83,8 +83,6 @@ https://www.curseforge.com/wow/addons/druidmacrohelper
 /dmh end
 ```
 
-```
-
 ## Available commands
 
 There are two options on how to use the addon in macros:
