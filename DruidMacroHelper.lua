@@ -216,6 +216,7 @@ end
 
 function DruidMacroHelper:IsItemOnCooldown(itemNameOrId)
   local itemId = itemNameOrId;
+  itemNameOrId = strlower(itemNameOrId);
   if self.itemShortcuts and self.itemShortcuts[itemNameOrId] then
     itemId = self.itemShortcuts[itemNameOrId];
   end
