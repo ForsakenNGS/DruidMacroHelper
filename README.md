@@ -73,6 +73,16 @@ https://www.curseforge.com/wow/addons/druidmacrohelper
 /click dmhEnd
 ```
 
+### Feral Charge
+#### Go to Bear and Feral Charge from any form. Checks if we are in range and Feral Charge is off CD.
+```lua
+#showtooltip
+/dmh charge
+/use [noform:1] Dire Bear Form
+/cast Feral Charge
+/dmh end
+```
+
 ## Available commands
 
 There are two options on how to use the addon in macros:
@@ -114,6 +124,9 @@ The slash commands allow for more flexibility in some cases (like custom itemIds
 * `/dmh cd <itemId|itemShortcut>[ <itemId|itemShortcut> ...]`
 
     Disable autoUnshift if items are on cooldown, player is stunned, on gcd or out of mana
+* `/dmh charge <unit|target|mouseover|arena1 ...>`
+
+    Disable autoUnshift if specified unit is out of range of Feral Charge
 
 ### Item shortcuts
 For checking cooldowns you can use item shortcuts instead of the id. Available are:
