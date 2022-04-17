@@ -157,12 +157,12 @@ function DruidMacroHelper:OnSlashCharge(unit)
   if unit == nil then
     unit = "target"
   end
-  if ~UnitExists(unit) then
+  if not UnitExists(unit) then
     self:LogOutput("Unit not found:", unit);
     return;
   end
   local prevent = false;
-  if ~IsSpellInRange(L["SPELL_CHARGE"], unit) then
+  if not IsSpellInRange(L["SPELL_CHARGE"], unit) then
     prevent = true
   end
   local start, duration = GetSpellCooldown(L["SPELL_CHARGE"]);
