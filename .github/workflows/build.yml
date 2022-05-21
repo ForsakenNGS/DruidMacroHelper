@@ -22,13 +22,6 @@ jobs:
         env:
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Create Classic Package
-        uses: BigWigsMods/packager@master
-        with:
-          args: -g classic -m .pkgmeta-classic
-        env:
-          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Create BC Package
         uses: BigWigsMods/packager@master
         with:
