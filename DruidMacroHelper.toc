@@ -5,6 +5,8 @@
 ## Version: 1.2.1
 ## Author: Mylaerla-Everlook
 ## Notes: Helper-Functions for creating efficient druid macros
+## X-Curse-Project-ID: 515355
+## X-Wago-ID: R4N2yaGL
 ## DefaultState: enabled
 
 Locale\enUS.lua
