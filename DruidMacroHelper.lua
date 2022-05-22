@@ -174,16 +174,17 @@ function DruidMacroHelper:OnSlashCooldown(parameters)
   end
 end
 
-function DruidMacroHelper:OnSlashCharge(unit)
-  if unit == nil then
-    unit = "target"
+function DruidMacroHelper:OnSlashCharge(parameters)
+  local unit = "target";
+  if #(parameters) > 0 then
+    unit = tremove(parameters, 1);
   end
   if not UnitExists(unit) then
     self:LogOutput("Unit not found:", unit);
     return;
   end
   local prevent = false;
-  local range = IsSpellInRange(L["SPELL_INNERVATE"], unit);
+  local range = IsSpellInRange(L["SPELL_CHARGE"], unit);
   if not range or (range == 0) then
     prevent = true
   end
