@@ -25,6 +25,7 @@ function DruidMacroHelper:Init()
   self:RegisterSlashAction('mana', 'OnSlashMana', 'Disable autoUnshift if you are missing mana to shift back into form');
   self:RegisterSlashAction('cd', 'OnSlashCooldown', '|cffffff00<itemId|itemShortcut>[ <itemId|itemShortcut> ...]|r Disable autoUnshift if items are on cooldown, player is stunned, on gcd or out of mana');
   self:RegisterSlashAction('charge', 'OnSlashCharge', '|cffffff00<unit|target|mouseover|targettarget|arena1 ...>|r Disable autoUnshift if unit is in range of Feral Charge');
+  self:RegisterSlashAction('innervate', 'OnSlashInnervate', '|cffffff00<unit>|r Cast Innervate on the given unit and notify it via whisper');
   self:RegisterSlashAction('debug', 'OnSlashDebug', '|cffffff00on/off|r Enable or disable debugging output');
   self:CreateButton('dmhStart', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;\n/dmh start', 'Change actionbar based on the current form. (includes /dmh start)');
   self:CreateButton('dmhBar', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;', 'Change actionbar based on the current form. (without /dmh start)');
@@ -34,6 +35,7 @@ function DruidMacroHelper:Init()
   self:CreateButton('dmhHs', '/dmh cd hs\n/dmh start', 'Disable autoUnshift if not ready to use a healthstone');
   self:CreateButton('dmhSap', '/dmh cd sapper\n/dmh start', 'Disable autoUnshift if not ready to use a sapper');
   self:CreateButton('dmhSuperSap', '/dmh cd supersapper\n/dmh start', 'Disable autoUnshift if not ready to use a super sapper');
+  self.ChatThrottle = nil
   self.SpellQueueWindow = 400
 end
 
@@ -44,6 +46,25 @@ end
 function DruidMacroHelper:LogDebug(...)
   if self.debug then
     print("|cffff0000DMH|r", "|cffffff00Debug|r", ...);
+  end
+end
+
+function DruidMacroHelper:ChatMessageThrottle(message, chatType, language, channel)
+  if (self.ChatThrottle ~= nil) and (self.ChatThrottle > GetTime()) then
+    self:LogDebug("Chat throttled!", self.ChatThrottle, GetTime());
+    return;
+  end
+  self.ChatThrottle = GetTime() + 2.0;
+  SendChatMessage(message, chatType, language, channel);
+end
+
+function DruidMacroHelper:ChatMessageThrottleUnit(message, unit)
+  if UnitExists(unit) and UnitIsPlayer(unit) then
+    local name, realm = UnitName(unit);
+    if (realm ~= nil) and (realm ~= "") then
+      name = name.."-"..realm;
+    end
+    self:ChatMessageThrottle(message, "WHISPER", nil, name);
   end
 end
 
@@ -162,7 +183,8 @@ function DruidMacroHelper:OnSlashCharge(unit)
     return;
   end
   local prevent = false;
-  if not IsSpellInRange(L["SPELL_CHARGE"], unit) then
+  local range = IsSpellInRange(L["SPELL_INNERVATE"], unit);
+  if not range or (range == 0) then
     prevent = true
   end
   local start, duration = GetSpellCooldown(L["SPELL_CHARGE"]);
@@ -172,6 +194,45 @@ function DruidMacroHelper:OnSlashCharge(unit)
   if prevent then
     SetCVar("autoUnshift", 0);
   end
+end
+
+function DruidMacroHelper:OnSlashInnervate(unitIds)
+  local unit = "target";
+  if (#(unitIds) > 0) then
+    unit = tremove(unitIds, 1);
+  end
+  if not UnitExists(unit) or UnitIsEnemy(unit, "player") then
+    if (#(unitIds) > 0) then
+      -- If more than one unit id is given, try next
+      self:OnSlashInnervate(unitIds);
+    else
+      self:LogOutput("Unit not found:", unit);
+    end
+    return;
+  end
+  local prevent = false;
+  local start, duration = GetSpellCooldown(L["SPELL_INNERVATE"]);
+  if duration > 0 then
+    if (duration > 1) then
+      local durationLeft = ceil(duration - (GetTime() - start));
+      self:ChatMessageThrottleUnit(L["NOTIFY_INNERVATE_COOLDOWN"].." ("..durationLeft.."s)", unit);
+    end
+    prevent = true
+  end
+  local range = IsSpellInRange(L["SPELL_INNERVATE"], unit);
+  if not range or (range == 0) then
+    if not prevent then
+      self:ChatMessageThrottleUnit(L["NOTIFY_INNERVATE_RANGE"], unit);
+    end
+    prevent = true
+  end
+  if prevent then
+    SetCVar("autoUnshift", 0);
+  else
+    self:ChatMessageThrottleUnit(L["NOTIFY_INNERVATE"], unit);
+  end
+  -- Ensure additional unit ids are not interpreted as additional conditions
+  wipe(unitIds);
 end
 
 function DruidMacroHelper:OnSlashDebug(parameters)

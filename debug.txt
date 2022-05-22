@@ -1,0 +1,2 @@
+
+/script local pn = UnitName("focus") or UnitName("target"); if pn then SendChatMessage("Du hast Anregen!","WHISPER",nil,pn) end

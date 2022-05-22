@@ -83,6 +83,16 @@ https://www.curseforge.com/wow/addons/druidmacrohelper
 /dmh end
 ```
 
+### Innervate
+#### Drop shape and cast innervate if target is in rage and innervate is off CD.
+Will notify the target via whisper if out of range, innervate is on CD or if cast successfully.
+```lua
+#showtooltip
+/dmh innervate focus target player
+/cast [@focus,help,nodead]Innervate;Innervate
+/dmh end
+```
+
 ## Available commands
 
 There are two options on how to use the addon in macros:
@@ -127,6 +137,9 @@ The slash commands allow for more flexibility in some cases (like custom itemIds
 * `/dmh charge <unit|target|mouseover|arena1 ...>`
 
     Disable autoUnshift if specified unit is out of range of Feral Charge
+* `/dmh innervate <unit|focus|target|mouseover ...> (<unit|focus|target|mouseover ...>) (<unit|focus|target|mouseover ...>)`
+
+    Disable autoUnshift if specified unit is out of range of Innervate or it is on CD (will go through all given unit until a existing and friendly unit was found)
 
 ### Item shortcuts
 For checking cooldowns you can use item shortcuts instead of the id. Available are:
