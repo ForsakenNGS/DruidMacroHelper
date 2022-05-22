@@ -1,0 +1,4 @@
+package-as: DruidMacroHelper
+
+ignore:
+  - README.md
