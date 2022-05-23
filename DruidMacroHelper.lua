@@ -27,14 +27,14 @@ function DruidMacroHelper:Init()
   self:RegisterSlashAction('charge', 'OnSlashCharge', '|cffffff00<unit|target|mouseover|targettarget|arena1 ...>|r Disable autoUnshift if unit is in range of Feral Charge');
   self:RegisterSlashAction('innervate', 'OnSlashInnervate', '|cffffff00<unit>|r Cast Innervate on the given unit and notify it via whisper');
   self:RegisterSlashAction('debug', 'OnSlashDebug', '|cffffff00on/off|r Enable or disable debugging output');
-  self:CreateButton('dmhStart', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;\n/dmh start', 'Change actionbar based on the current form. (includes /dmh start)');
-  self:CreateButton('dmhBar', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;', 'Change actionbar based on the current form. (without /dmh start)');
-  self:CreateButton('dmhReset', '/changeactionbar 1', 'Change actionbar back to 1.');
-  self:CreateButton('dmhEnd', '/use [bar:2]!'..L["FORM_DIRE_BEAR"]..';[bar:3]!'..L["FORM_CAT"]..';[bar:4]!'..L["FORM_TRAVEL"]..'\n/click dmhReset\n/dmh end', 'Change back to form based on the current bar. (includes /dmh end)');
-  self:CreateButton('dmhPot', '/dmh cd pot\n/dmh start', 'Disable autoUnshift if not ready to use a potion');
-  self:CreateButton('dmhHs', '/dmh cd hs\n/dmh start', 'Disable autoUnshift if not ready to use a healthstone');
-  self:CreateButton('dmhSap', '/dmh cd sapper\n/dmh start', 'Disable autoUnshift if not ready to use a sapper');
-  self:CreateButton('dmhSuperSap', '/dmh cd supersapper\n/dmh start', 'Disable autoUnshift if not ready to use a super sapper');
+  self:CreateButton('dmhStart', self:GetMacroText('dmhStart'), 'Change actionbar based on the current form. (includes /dmh start)');
+  self:CreateButton('dmhBar', self:GetMacroText('dmhBar'), 'Change actionbar based on the current form. (without /dmh start)');
+  self:CreateButton('dmhReset', self:GetMacroText('dmhReset'), 'Change actionbar back to 1.');
+  self:CreateButton('dmhEnd', self:GetMacroText('dmhEnd'), 'Change back to form based on the current bar. (includes /dmh end)');
+  self:CreateButton('dmhPot', self:GetMacroText('dmhPot'), 'Disable autoUnshift if not ready to use a potion');
+  self:CreateButton('dmhHs', self:GetMacroText('dmhHs'), 'Disable autoUnshift if not ready to use a healthstone');
+  self:CreateButton('dmhSap', self:GetMacroText('dmhSap'), 'Disable autoUnshift if not ready to use a sapper');
+  self:CreateButton('dmhSuperSap', self:GetMacroText('dmhSuperSap'), 'Disable autoUnshift if not ready to use a super sapper');
   self.ChatThrottle = nil
   self.SpellQueueWindow = 400
 end
@@ -316,6 +316,34 @@ function DruidMacroHelper:IsItemOnCooldown(itemNameOrId)
   return (GetItemCooldown(itemId) > 0);
 end
 
+function DruidMacroHelper:GetMacroText(buttonName)
+  if buttonName == 'dmhStart' then
+    return '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;\n/dmh start';
+  elseif buttonName == 'dmhBar' then
+    return '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;';
+  elseif buttonName == 'dmhReset' then
+    return '/changeactionbar 1';
+  elseif buttonName == 'dmhEnd' then
+    local spellBear = L["FORM_DIRE_BEAR"];
+    if not GetSpellInfo(spellBear) then
+      spellBear = L["FORM_BEAR"];
+    end
+    local spellCat = L["FORM_CAT"];
+    local spellTravel = L["FORM_TRAVEL"];
+    return '/use [bar:2]!'..spellBear..';[bar:3]!'..spellCat..';[bar:4]!'..spellTravel..'\n/click dmhReset\n/dmh end';
+  elseif buttonName == 'dmhPot' then
+    return '/dmh cd pot\n/dmh start';
+  elseif buttonName == 'dmhHs' then
+    return '/dmh cd hs\n/dmh start';
+  elseif buttonName == 'dmhSap' then
+    return '/dmh cd sapper\n/dmh start';
+  elseif buttonName == 'dmhSuperSap' then
+    return '/dmh cd supersapper\n/dmh start';
+  else
+    return '';
+  end
+end
+
 function DruidMacroHelper:CreateButton(name, macrotext, description)
   local b = _G[name] or CreateFrame('Button', name, nil, 'SecureActionButtonTemplate,SecureHandlerBaseTemplate');
   b:SetAttribute('type', 'macro');
@@ -327,6 +355,23 @@ function DruidMacroHelper:CreateButton(name, macrotext, description)
     description = "No description available";
   end
   self.buttons[name] = description;
+end
+
+function DruidMacroHelper:UpdateButton(name, macrotext, description)
+  if not self.buttons or not self.buttons[name] then
+    return;
+  end
+  local b = _G[name];
+  if macrotext then
+    b:SetAttribute('macrotext', macrotext);
+  end
+  if description then
+    self.buttons[name] = description;
+  end
+end
+
+function DruidMacroHelper:UpdateForms()
+  self:UpdateButton('dmhEnd', self:GetMacroText('dmhEnd'));
 end
 
 function DruidMacroHelper:RegisterCondition(shortcut, itemId)
