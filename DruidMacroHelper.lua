@@ -253,6 +253,7 @@ function DruidMacroHelper:OnSlashDebug(parameters)
   end
   if self.debug then
     self:LogOutput("Debug output enabled");
+    self:LogDebug("Button 'dmhEnd' macrotext:\n"..self:GetButtonMacroText('dmhEnd'));
   else
     self:LogOutput("Debug output disabled");
   end
@@ -355,6 +356,17 @@ function DruidMacroHelper:CreateButton(name, macrotext, description)
     description = "No description available";
   end
   self.buttons[name] = description;
+end
+
+function DruidMacroHelper:GetButtonMacroText(name)
+  if not self.buttons or not self.buttons[name] then
+    return "<Button "..name.." not defined>";
+  end
+  local b = _G[name];
+  if not b then
+    return "<Button "..name.." not found>";
+  end
+  return b:GetAttribute('macrotext');
 end
 
 function DruidMacroHelper:UpdateButton(name, macrotext, description)
