@@ -6,6 +6,13 @@ local DRUID_MACRO_HELPER_LOC_STUN = { "STUN", "STUN_MECHANIC", "FEAR", "CHARM", 
 DruidMacroHelper = {};
 
 function DruidMacroHelper:Init()
+  self.ChatThrottle = nil;
+  self.Frame = _G["DruidMacroHelperFrame"] or CreateFrame('Frame', 'DruidMacroHelperFrame');
+  self.Frame:SetScript("OnEvent", function(...)
+    self:OnEvent(...);
+  end);
+  self.SpellQueueWindow = 400;
+  self:RegisterEvent("PLAYER_ENTERING_WORLD");
   self:RegisterItemShortcut("pot", 13446);
   self:RegisterItemShortcut("potion", 13446);
   self:RegisterItemShortcut("hs", 20520);
@@ -35,8 +42,6 @@ function DruidMacroHelper:Init()
   self:CreateButton('dmhHs', self:GetMacroText('dmhHs'), 'Disable autoUnshift if not ready to use a healthstone');
   self:CreateButton('dmhSap', self:GetMacroText('dmhSap'), 'Disable autoUnshift if not ready to use a sapper');
   self:CreateButton('dmhSuperSap', self:GetMacroText('dmhSuperSap'), 'Disable autoUnshift if not ready to use a super sapper');
-  self.ChatThrottle = nil
-  self.SpellQueueWindow = 400
 end
 
 function DruidMacroHelper:LogOutput(...)
@@ -65,6 +70,16 @@ function DruidMacroHelper:ChatMessageThrottleUnit(message, unit)
       name = name.."-"..realm;
     end
     self:ChatMessageThrottle(message, "WHISPER", nil, name);
+  end
+end
+
+function DruidMacroHelper:OnEvent(frame, event, ...)
+  if (event == "PLAYER_ENTERING_WORLD") then
+    self:UpdateForms();
+  elseif (event == "LEARNED_SPELL_IN_TAB") then
+    self:UpdateForms();
+  else
+    self:LogDebug("Unhandled Event:", event, ...);
   end
 end
 
@@ -432,6 +447,10 @@ function DruidMacroHelper:RegisterSlashCommand(cmd)
     tinsert(self.slashCommands, cmd);
     _G["SLASH_DRUID_MACRO_HELPER"..index] = cmd;
   end
+end
+
+function DruidMacroHelper:RegisterEvent(event)
+  self.Frame:RegisterEvent(event);
 end
 
 -- Kickstart the addon
