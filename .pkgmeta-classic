@@ -2,3 +2,4 @@ package-as: DruidMacroHelper
 
 ignore:
   - README.md
+  - pkgmeta.yaml
