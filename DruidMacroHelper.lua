@@ -27,6 +27,7 @@ function DruidMacroHelper:Init()
   self:RegisterSlashAction('charge', 'OnSlashCharge', '|cffffff00<unit|target|mouseover|targettarget|arena1 ...>|r Disable autoUnshift if unit is in range of Feral Charge');
   self:RegisterSlashAction('innervate', 'OnSlashInnervate', '|cffffff00<unit>|r Cast Innervate on the given unit and notify it via whisper');
   self:RegisterSlashAction('debug', 'OnSlashDebug', '|cffffff00on/off|r Enable or disable debugging output');
+  self:RegisterSlashAction('maul', 'OnSlashMaul', 'Disable autoUnshift if you have Maul queued');
   self:CreateButton('dmhStart', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;\n/dmh start', 'Change actionbar based on the current form. (includes /dmh start)');
   self:CreateButton('dmhBar', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;', 'Change actionbar based on the current form. (without /dmh start)');
   self:CreateButton('dmhReset', '/changeactionbar 1', 'Change actionbar back to 1.');
@@ -136,9 +137,16 @@ function DruidMacroHelper:OnSlashGcd(parameters)
   end
 end
 
+function DruidMacroHelper:OnSlashMaul(parameters)
+  if (IsCurrentSpell("Maul") and IsSpellInRange("Bash", "target") == 1) then
+    self:LogDebug("You have Maul queued");
+    SetCVar("autoUnshift", 0);
+  end
+end
+
 function DruidMacroHelper:OnSlashMana(parameters)
   local manaCost = 580;
-  local manaCostTable = GetSpellPowerCost(spellId);
+  local manaCostTable = GetSpellPowerCost(768);
   if (manaCostTable) then
     for i in ipairs(manaCostTable) do
       if (manaCostTable[i].type == 0) then
