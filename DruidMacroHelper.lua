@@ -115,12 +115,9 @@ function DruidMacroHelper:OnSlashStart(parameters)
   self:OnSlashGcd(parameters);
   self:OnSlashMana(parameters);
   self:OnSlashCooldown(parameters);
-
-  if GetCVar("autoUnshift") == "1" then
-    self:LogDebug("Setting SpellQueueWindow to 0")
-    self.SpellQueueWindow = GetCVar("SpellQueueWindow");
-    SetCVar("SpellQueueWindow", 0);
-  end
+  self:LogDebug("Setting SpellQueueWindow to 0")
+  self.SpellQueueWindow = GetCVar("SpellQueueWindow");
+  SetCVar("SpellQueueWindow", 0);
 end
 
 function DruidMacroHelper:OnSlashStun(parameters)
