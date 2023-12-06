@@ -318,7 +318,7 @@ function DruidMacroHelper:IsItemOnCooldown(itemNameOrId)
   if self.itemShortcuts and self.itemShortcuts[itemNameOrId] then
     itemId = self.itemShortcuts[itemNameOrId];
   end
-  return (GetItemCooldown(itemId) > 0);
+  return (C_Container.GetItemCooldown(itemId) > 0);
 end
 
 function DruidMacroHelper:CreateButton(name, macrotext, description)
