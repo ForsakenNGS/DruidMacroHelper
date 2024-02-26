@@ -135,7 +135,7 @@ function DruidMacroHelper:OnSlashGcd(parameters)
 end
 
 function DruidMacroHelper:OnSlashMaul(parameters)
-  if (IsCurrentSpell("Maul") and IsSpellInRange("Bash", "target") == 1) then
+  if (IsCurrentSpell(GetSpellLink("Maul")[2]) and IsSpellInRange("Bash", "target") == 1) then
     self:LogDebug("You have Maul queued");
     SetCVar("autoUnshift", 0);
   end
