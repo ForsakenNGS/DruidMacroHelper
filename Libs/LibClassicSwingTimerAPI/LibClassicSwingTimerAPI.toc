@@ -1,0 +1,15 @@
+## Interface: 100200
+## Interface-Classic: 11500
+## Interface-BCC: 20504
+## Interface-Wrath: 30403
+## Interface-Cata: 40400
+## Version: 2.0.5
+## Title: Swing Timer API
+## Notes: Swing Timer Library
+## Author: Ralgathor
+## X-Wago-ID: ZQ6aaY6W
+## X-Curse-Project-ID: 669849
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+LibClassicSwingTimerAPI.lua

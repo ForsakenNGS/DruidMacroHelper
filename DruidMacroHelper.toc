@@ -2,13 +2,20 @@
 ## Interface-Classic: 11403
 ## Interface-BCC: 20504
 ## Interface-Wrath: 30400
+## Interface-Cata: 40400
 ## Title: DruidMacroHelper
-## Version: 1.2.8
+## Version: 1.2.9
 ## Author: Mylaerla-Everlook
 ## Notes: Helper-Functions for creating efficient druid macros
 ## X-Curse-Project-ID: 515355
 ## X-Wago-ID: R4N2yaGL
 ## DefaultState: enabled
+
+Libs\LibStub\LibStub.lua
+Libs\AceAddon-3.0\AceAddon-3.0.xml
+Libs\AceEvent-3.0\AceEvent-3.0.xml
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibClassicSwingTimerAPI\LibClassicSwingTimerAPI.lua
 
 Locale\enUS.lua
 Locale\deDE.lua
