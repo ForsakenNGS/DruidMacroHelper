@@ -159,7 +159,7 @@ end
 
 function DruidMacroHelper:SnakeHelper(parameters)
   for i=1,GetNumCompanions("CRITTER") do
-    if select(2, GetCompanionInfo("CRITTER", i)) == "Albino Snake" then
+    if select(1, GetCompanionInfo("CRITTER", i)) == 7561 then
         CallCompanion("CRITTER", i)
 
         if (#(parameters) < 1) then
