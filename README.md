@@ -1,4 +1,4 @@
-# DruidMacroHelper (TBC Classic) by Mylaerla-Everlook
+# DruidMacroHelper (Cata Classic) by Mylaerla-Everlook
 
 This addon aims to simplify consume/powershifting macros as much as possible,
 making them more readable and massively reduce the character count.
