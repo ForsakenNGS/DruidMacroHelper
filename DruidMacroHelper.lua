@@ -2,10 +2,11 @@ local _, L = ...;
 local DRUID_MACRO_HELPER_LOC_IGNORED = { "SCHOOL_INTERRUPT", "DISARM", "PACIFYSILENCE", "SILENCE", "PACIFY" };
 local DRUID_MACRO_HELPER_LOC_SHIFTABLE = { "ROOT" };
 local DRUID_MACRO_HELPER_LOC_STUN = { "STUN", "STUN_MECHANIC", "FEAR", "CHARM", "CONFUSE", "POSSESS" };
+local LibClassicSwingTimerAPI = LibStub("LibClassicSwingTimerAPI", true)
 
-DruidMacroHelper = {};
+DruidMacroHelper = LibStub("AceAddon-3.0"):NewAddon("DruidMacroHelper", "AceEvent-3.0");
 
-function DruidMacroHelper:Init()
+function DruidMacroHelper:OnEnable()
   self:RegisterItemShortcut("pot", 13446);
   self:RegisterItemShortcut("potion", 13446);
   self:RegisterItemShortcut("hs", 20520);
@@ -28,6 +29,9 @@ function DruidMacroHelper:Init()
   self:RegisterSlashAction('innervate', 'OnSlashInnervate', '|cffffff00<unit>|r Cast Innervate on the given unit and notify it via whisper');
   self:RegisterSlashAction('debug', 'OnSlashDebug', '|cffffff00on/off|r Enable or disable debugging output');
   self:RegisterSlashAction('maul', 'OnSlashMaul', 'Disable autoUnshift if you have Maul queued');
+  self:RegisterSlashAction('snake', 'OnSlashSnake', 'Use Albino Snake to clip swing timer if advantageous')
+  self:RegisterSlashAction('snek', 'OnSlashSnake', 'Use Albino Snake to clip swing timer if advantageous, but faster')
+  self:RegisterSlashAction('dismiss', 'OnSlashDismiss', 'Dismiss Albino Snake')
   self:CreateButton('dmhStart', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;\n/dmh start', 'Change actionbar based on the current form. (includes /dmh start)');
   self:CreateButton('dmhBar', '/changeactionbar [noform]1;[form:1]2;[form:3]3;[form:4]4;[form:5]5;6;', 'Change actionbar based on the current form. (without /dmh start)');
   self:CreateButton('dmhReset', '/changeactionbar 1', 'Change actionbar back to 1.');
@@ -36,8 +40,10 @@ function DruidMacroHelper:Init()
   self:CreateButton('dmhHs', '/dmh cd hs\n/dmh start', 'Disable autoUnshift if not ready to use a healthstone');
   self:CreateButton('dmhSap', '/dmh cd sapper\n/dmh start', 'Disable autoUnshift if not ready to use a sapper');
   self:CreateButton('dmhSuperSap', '/dmh cd supersapper\n/dmh start', 'Disable autoUnshift if not ready to use a super sapper');
+  self:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
   self.ChatThrottle = nil
   self.SpellQueueWindow = 400
+  self.AutoUnsnake = false
 end
 
 function DruidMacroHelper:LogOutput(...)
@@ -139,6 +145,62 @@ function DruidMacroHelper:OnSlashMaul(parameters)
     self:LogDebug("You have Maul queued");
     SetCVar("autoUnshift", 0);
   end
+end
+
+function DruidMacroHelper:UPDATE_SHAPESHIFT_FORM(event)
+  C_Timer.After(0.1, function() 
+    if self.AutoUnsnake and GetShapeshiftForm() ~= 3 then
+      self:LogDebug("Auto unsnaked")
+      DismissCompanion("CRITTER")
+      self.AutoUnsnake = false
+    end
+  end)
+end
+
+function DruidMacroHelper:SnakeHelper(parameters)
+  for i=1,GetNumCompanions("CRITTER") do
+    if select(2, GetCompanionInfo("CRITTER", i)) == "Albino Snake" then
+        CallCompanion("CRITTER", i)
+
+        if (#(parameters) < 1) then
+          self.AutoUnsnake = true
+        else
+          local additional = tremove(parameters, 1);
+          if additional == "timed" then
+            C_Timer.After(2, function() DismissCompanion("CRITTER") end)
+          elseif additional == "auto" then
+            self.AutoUnsnake = true
+          end
+        end
+
+        return
+    end
+  end
+end
+
+function DruidMacroHelper:OnSlashSnake(parameters)
+  if GetCVar("autoUnshift") == "1" then
+    if LibClassicSwingTimerAPI == nil then
+      self:LogDebug("LibClassicSwingTimerAPI not installed, snaking naively");
+      self:SnakeHelper(parameters);
+    else
+      local time_till_next_auto = select(2, LibClassicSwingTimerAPI:SwingTimerInfo("mainhand")) - GetTime();
+      if time_till_next_auto > (1 / (1 + GetMeleeHaste() / 100)) then
+        self:LogDebug("Summoning snake to clip next swing down from", time_till_next_auto);
+        self:SnakeHelper(parameters);
+      else
+        self:LogDebug("Your swing timer is less than 1, did not snake:", time_till_next_auto);
+      end
+    end
+  end
+  if (#(parameters) > 0) then
+    tremove(parameters, 1);
+  end
+end
+
+function DruidMacroHelper:OnSlashDismiss(parameters)
+  self:LogDebug("Dismissed our snake if they were out");
+  DismissCompanion("CRITTER");
 end
 
 function DruidMacroHelper:OnSlashMana(parameters)
@@ -381,6 +443,3 @@ function DruidMacroHelper:RegisterSlashCommand(cmd)
     _G["SLASH_DRUID_MACRO_HELPER"..index] = cmd;
   end
 end
-
--- Kickstart the addon
-DruidMacroHelper:Init();

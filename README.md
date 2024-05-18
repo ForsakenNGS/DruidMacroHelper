@@ -33,6 +33,20 @@ https://www.curseforge.com/wow/addons/druidmacrohelper
 /dmh end
 ```
 
+### Albino Snake Usage
+ Use Albino Snake to clip swing timer if advantageous when shifting into cat form
+```lua
+#showtooltip
+/dmh start
+/cast !Cat Form
+/dmh snake
+/dmh end
+```
+By default, this will dismiss the snake 0.1s after leaving cat form.
+You can instead dismiss the snake 2 seconds after summoning by adding the `timed` parameter
+
+Example: `/dmh snake timed`
+
 ### Healthstone
 #### Will shift out of form, use a Healthstone and shift back into the form you started in
 ```lua
